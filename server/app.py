@@ -3,7 +3,7 @@ import functools
 from flask import Flask, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
-
+from werkzeug.exceptions import NotFound
 from models import db, Newsletter
 
 app = Flask(__name__)
@@ -112,6 +112,11 @@ class NewsLettersByID(Resource):
 
         return self.response_func(news_dict, 200)
 
+    # def get(self, id):
+    #     news = Newsletter.query.filter(Newsletter.id == id).first()
+    #     news_dict = news.to_dict()
+    #     return self.response_func(news_dict, 200)
+
     @record_exits
     def patch(self, news):
         
@@ -140,6 +145,15 @@ class NewsLettersByID(Resource):
 
 api.add_resource(NewsLettersByID, "/newsletters/<int:id>")
 
+@app.errorhandler(NotFound)
+def handle_not_found(e):
+    response = make_response(
+        f"<h1>{e}</h1>",
+        404
+    )
+    return response
+
+app.register_error_handler(404, handle_not_found)
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
